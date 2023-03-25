@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
@@ -8,11 +7,9 @@ import io from 'socket.io-client'
 let socket
 let message
 const inter = Inter({ subsets: ['latin'] })
-export default function Game() {
-  const router = useRouter()
-  const { id } = router.query
 
-  useEffect(() => { socketInitializer(); }, [])
+export default function Game() {
+	useEffect(() => { socketInitializer(); }, [])
 
   const socketInitializer = async () => {
     let res = await fetch('/api/game_manager');
@@ -26,7 +23,8 @@ export default function Game() {
 
   return (
     <>
-    <h1 className='font-sans'>Game Page ID: {id}</h1>
+        {/* <Script src="/socket.io/socket.io.js"></Script> */}
+    <h1 className='font-sans'>Game Page{}</h1>
     <div className='center' style={{height:"75vw"}}>
       <button className='rounded-md border-2 border-indigo-500/75'>Roll</button>
       <table align='right' className='table-auto border-collapse border border-slate-500 ...'>

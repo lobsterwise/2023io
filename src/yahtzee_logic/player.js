@@ -1,12 +1,11 @@
 class Player
 {
-    constructor(name, score, roll, id, dice, want_to_roll)
+    constructor(score, roll, id, dice)
     {
-        this.name = name;
         this.score = score;
         this.roll = roll;
         this.id = id;
-        this.dice = dice; //will be in form of [number of die, sides on die
+        this.dice = dice; //will be in form of [number of die, sides on die]
     }
 
     roll_calculator(dice)

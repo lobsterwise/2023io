@@ -32,6 +32,7 @@ class GameManager {
 export default function handler(req, res) {
 	if (!res.game) {
 		let game = new ManagedGame(req.id);
+		res.status(200)
 		res.game = game;
 	}
 }
