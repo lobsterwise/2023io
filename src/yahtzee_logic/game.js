@@ -1,38 +1,59 @@
 //This class manages all of the player's actions and each round of the game
+//const player = new(Player)
+import Player from "./player.js";
 
-class Game
-{
-    constructor(player_ids)
-    {
-        this.player_ids = player_ids; //this is an array of player ids
-        this.turn = 0;
-        
-
+class Game {
+    constructor(dice, players) {
+		this.dice = dice;
+        this.players = players.map(player => {
+			return new Player(0, this.dice);
+		});
+		this.currentPlayer = 0;
+		this.currentRoll = 0;
     }
-    handle_turn(player_id)
-    {
 
+    player_roll_die() {
+		// You only get 3 rolls
+		if (this.currentRoll > 2) return;
+		let player = this.players[this.currentPlayer];
+		player.roll();
     }
-    //this function manages each individual turn and each of the player's actions
-    turn_manager(player_ids)
-    {
-        //loop through all of the players
-        for(let i in player_ids)
-        {
-            this.handle_turn(player_ids[i]);
-        }
-        this.turn++;
+
+    player_toggle_held(die) {
+		let player = this.players[this.currentPlayer];
+        player.toggle_held(die);
+    }
+
+	player_get_dice() {
+		let player = this.players[this.currentPlayer];
+		return player.get_dice();
+	}
+
+	get_score() {
+		let player = this.players[this.currentPlayer];
+		return player.score;
+	}
+
+	// Returns false if a field is already filled
+	player_put_score(field) {
+		let player = this.players[this.currentPlayer];
+		if (player.score.isFilled(field)) {
+			return false;
+		}
+		player.score.setScore(field, player.dice);
+
+		this.currentRoll = 0;
+		this.handle_turns();
+
+		return true;
+	}
+
+    handle_turns() {
+		this.currentPlayer++;
+		if (this.currentPlayer > 1) {
+			this.currentPlayer = 0;
+		}
+		this.players[this.currentPlayer].startTurn();
     }
 }
-
 export default Game;
-
-
-//delete before presenting:
-
-//what this class needs to do:
-//
-//what this class needs to take in:
-//player ids
-//what this class needs to return:
-//

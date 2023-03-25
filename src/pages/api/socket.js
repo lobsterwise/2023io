@@ -7,8 +7,6 @@ const SocketHandler = (req, res) => {
 		res.socket.server.io = io;
 	}
 
-	// if (!res.)
-
 	res.end();
 };
 
