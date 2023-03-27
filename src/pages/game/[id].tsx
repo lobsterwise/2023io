@@ -15,23 +15,26 @@ export default function Game() {
   const router = useRouter()
   const [player1Name, setPlayer1Name] = useState("Player 1");
   const [player2Name, setPlayer2Name] = useState("Player 2");
+  const [playerName, setPlayerName] = useState('Player 1');
   const [gameText, setGameText] = useState("Finding Match...");
   const [tableValues, setTableValues] = useState([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 0])
   const [dieValues, setDieValues] = useState(["", "", "", "", ""]);
   const { id } = router.query
-  socket = io();
+  socket = io({autoConnect: false});
 
-  useEffect(() => { initEvents(); })
+
   useEffect(() => {
     if (count < 1) {
+      initEvents();
       let result = prompt("Enter Username:")
-      setPlayer1Name(result)
+      setPlayerName(result)
       setName(result)
       count++;
     }
   }, [])
 
   const initEvents = async () => {
+    socket.connect()
     // Get the socket
     await fetch("http://localhost:3000/api/game_manager");
     socket.on('connect', () => {
@@ -42,21 +45,25 @@ export default function Game() {
       console.log("A player has connected to the session");
     });
 
-    socket.on('player-join', name => {
+    socket.on('player-join', (name: string) => {
       console.log("Player " + name + " has joined!");
     });
 
-    socket.on('both-players', (firstPlayer, secondPlayer) => {
-      console.log(`Name1: ${firstPlayer}, Name2: ${secondPlayer}`)
-      if(name === firstPlayer) {
-        setPlayer1Name(firstPlayer)
-        setPlayer2Name(secondPlayer)
-      } if(name === secondPlayer) {
-        setPlayer1Name(secondPlayer)
-        setPlayer2Name(firstPlayer)
-      }
-      setGameText(`Playing against: ${player2Name}`)
+    socket.on('both-players', (firstPlayer: string, secondPlayer: string) => {
+      // console.log(`Name1: ${firstPlayer}, Name2: ${secondPlayer}`)
+      // if (name == firstPlayer) {
+      //   setPlayer1Name(firstPlayer)
+      //   setPlayer2Name(secondPlayer)
+      // } else if(name == secondPlayer) {
+      //   setPlayer1Name(secondPlayer)
+      //   setPlayer2Name(firstPlayer)
+      // }
+      // setGameText(`Playing against: ${player2Name}`)
     });
+
+    socket.on("disconnect", (reason) => {
+      socket.emit("player-disconnect", playerName, reason)
+    })
 
     socket.on('update-score', (player, fields, leftSideBonus, yahtzeeBonus, total) => {
       if(player == 0) {
@@ -77,7 +84,7 @@ export default function Game() {
           if (values[i] === null) {
             dieValues[i] = "";
           }
-          dieValues[i] = toString(values[i]);
+          dieValues[i] = values[i].toString();
         }
       }
     });
@@ -94,7 +101,7 @@ export default function Game() {
     <>
     <h1 style={{textAlign:"center", paddingBottom:"2vw",paddingTop:"2vw"}} className='text-4xl font-sans text-white center'>{gameText}</h1>
     <div className='center bg-slate-800 text-white' style={{width:"75vw",height:"80vh"}}>
-      <table style={{width:"auto",position:"absolute",top:"70%",left:"32.5%"}} lassName='table-auto border-collapse border border-slate-500  ...'>
+      <table style={{width:"auto",position:"absolute",top:"70%",left:"32.5%"}} className='table-auto border-collapse border border-slate-500  ...'>
         <tbody>
         <tr>
           <td style={{textAlign:"center",padding:"2vh 2vw 2vh 2vw"}} className='border border-slate-300'>{dieValues[0]}</td>

@@ -1,15 +1,19 @@
 import { Server } from "socket.io";
 import Game from "../../yahtzee_logic/game";
-import { getSession } from "@/lib/getSession";
+import { getSession } from "../../lib/getSession";
+import Player from "../../yahtzee_logic/player";
 
 class ManagedGame {
-	constructor(id) {
+	id: string;
+	game: Game;
+	players: Player[];
+	constructor(id: string) {
 		this.id = id;
 		this.game = null;
 		this.players = [];
 	}
 
-	isStarted() {
+	isStarted(): boolean {
 		return (this.game !== null);
 	}
 
@@ -19,32 +23,22 @@ class ManagedGame {
 		this.players = [];
 	}
 
-	addPlayer(name) {
-		this.players.push(name);
-	}
-}
-
-class GameManager {
-	constructor() {
-		this.games = {};
+	addPlayer(name: string, id:string) {
+		this.players.push(new Player(name, this.players.length, id));
 	}
 
-	addGame(id) {
-		if (this.games[id] == undefined) {
-			this.games[id] = new ManagedGame(id);
-		}
-	}
-
-	getGame(id) {
-		if (this.games[id] == undefined) {
-			this.addGame(id);
+	removePlayer(id: string) {
+		let indexOfPlayer = this.players.map(e => e.id).indexOf(id)
+		if (indexOfPlayer > -1) {
+			console.log(`Removed ${this.players[indexOfPlayer].id}`)
+			this.players.splice(indexOfPlayer, 1)
 		} else {
-			return this.games[id];
+			console.log(`Unable to remove ${id}`)
 		}
 	}
 }
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
 	let session = await getSession(req, res);
 	if (!session.game) {
 		let game = new ManagedGame(req.id);
@@ -80,8 +74,8 @@ export default async function handler(req, res) {
 
 			socket.on('player-join', (name) => {
 				socket.broadcast.emit('player-join', name);
-				session.game.addPlayer(name);
-				console.log("Player " + name + " has joined");
+				session.game.addPlayer(name, socket.id);
+				console.log("Player " + name + " has joined" + socket.id);
 				if (session.game.players.length >= 2) {
 					startGame();
 				} 
@@ -96,14 +90,18 @@ export default async function handler(req, res) {
 				session.game.game.player_roll_die();
 
 				console.log("Player " + name + " has rolled the die");
-				socket.emit('update-dice', session.game.game.currentPlayer, session.game.game.player_get_dice());
+				socket.emit('update-dice', session.game.game.currentPlayer, session.game.game.playerGetDice());
 			});
+
+			socket.once("disconnect", (reason) => {
+				session.game.removePlayer(socket.id);
+			})
 
 			socket.on('hold', die => {
 				if (!session.game.isStarted()) return;
 				session.game.game.player_hold_die(die);
 
-				socket.emit('update-dice', session.game.game.currentPlayer, session.game.game.player_get_dice());
+				socket.emit('update-dice', session.game.game.currentPlayer, session.game.game.playerGetDice());
 			});
 
 			socket.on('put-score', field => {
@@ -117,9 +115,3 @@ export default async function handler(req, res) {
 
 	res.end();
 }
-
-// export const config = {
-//   api: {
-//     externalResolver: true,
-//   },
-// };
