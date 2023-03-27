@@ -5,6 +5,8 @@ import { Inter } from 'next/font/google'
 import {useEffect, useState} from 'react'
 import Script from 'next/script'
 import { io } from 'socket.io-client'
+import {default as DieComponent} from '../../components/Die'
+import Die, { makeDice } from '../../yahtzee_logic/die'
 
 const inter = Inter({ subsets: ['latin'] })
 let socket;
@@ -18,7 +20,7 @@ export default function Game() {
   const [playerName, setPlayerName] = useState('Player 1');
   const [gameText, setGameText] = useState("Finding Match...");
   const [tableValues, setTableValues] = useState([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 0])
-  const [dieValues, setDieValues] = useState(["", "", "", "", ""]);
+  const [dieValues, setDieValues] = useState(makeDice(null, false));
   const { id } = router.query
   socket = io({autoConnect: false});
 
@@ -49,16 +51,8 @@ export default function Game() {
       console.log("Player " + name + " has joined!");
     });
 
-    socket.on('both-players', (firstPlayer: string, secondPlayer: string) => {
-      // console.log(`Name1: ${firstPlayer}, Name2: ${secondPlayer}`)
-      // if (name == firstPlayer) {
-      //   setPlayer1Name(firstPlayer)
-      //   setPlayer2Name(secondPlayer)
-      // } else if(name == secondPlayer) {
-      //   setPlayer1Name(secondPlayer)
-      //   setPlayer2Name(firstPlayer)
-      // }
-      // setGameText(`Playing against: ${player2Name}`)
+    socket.on('players', (players: [object]) => {
+      console.log(players)
     });
 
     socket.on("disconnect", (reason) => {
@@ -77,25 +71,25 @@ export default function Game() {
       }
     });
 
-    socket.on('update-dice', (player, values, held) => {
+    socket.on('update-dice', (player, dice: any[]) => {
       if (player === 0) {
-        for (let i = 0; i < values.length; i++) {
-          console.log("Die " + values[i]);
-          if (values[i] === null) {
-            dieValues[i] = "";
-          }
-          dieValues[i] = values[i].toString();
-        }
+        setDieValues(dice);
       }
     });
   }
+
   const handleRoll = () => {
     socket.emit('roll', player1Name);
   } 
 
   const setName = (name) => {
     socket.emit('player-join', name);
-  } 
+  }
+
+  const handleHoldDie = (index: number) => {
+    console.log("DIEDIEIDIEDIE");
+    socket.emit('hold', index);
+  }
 
   return (
     <>
@@ -104,11 +98,11 @@ export default function Game() {
       <table style={{width:"auto",position:"absolute",top:"70%",left:"32.5%"}} className='table-auto border-collapse border border-slate-500  ...'>
         <tbody>
         <tr>
-          <td style={{textAlign:"center",padding:"2vh 2vw 2vh 2vw"}} className='border border-slate-300'>{dieValues[0]}</td>
-          <td style={{textAlign:"center",padding:"2vh 2vw 2vh 2vw"}} className='border border-slate-300'>{dieValues[1]}</td>
-          <td style={{textAlign:"center",padding:"2vh 2vw 2vh 2vw"}} className='border border-slate-300'>{dieValues[2]}</td>
-          <td style={{textAlign:"center",padding:"2vh 2vw 2vh 2vw"}} className='border border-slate-300'>{dieValues[3]}</td>
-          <td style={{textAlign:"center",padding:"2vh 2vw 2vh 2vw"}} className='border border-slate-300'>{dieValues[4]}</td>
+          <DieComponent onClick={() => handleHoldDie(0)} value={dieValues[0].held} held={dieValues[0].value} />
+          <DieComponent onClick={() => handleHoldDie(1)} value={dieValues[1].held} held={dieValues[1].value} />
+          <DieComponent onClick={() => handleHoldDie(2)} value={dieValues[2].held} held={dieValues[2].value} />
+          <DieComponent onClick={() => handleHoldDie(3)} value={dieValues[3].held} held={dieValues[3].value} />
+          <DieComponent onClick={() => handleHoldDie(4)} value={dieValues[4].held} held={dieValues[4].value} />
         </tr>
         </tbody>
       </table>

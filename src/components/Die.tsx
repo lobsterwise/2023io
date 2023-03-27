@@ -1,16 +1,22 @@
-import { useState } from "react";
+export default function Die({ onClick, value, held}) {
+  const handleClick = () => {
+    console.log("LIVLIVELIVELIVELIE");
+    onClick();
+  };
 
-export default function Die() {
-	const [value, setValue] = useState(0);
-	const [held, setHeld] = useState(false);
-	
   return (
-    <td style={{
-      textAlign: "center",
-      padding: "2vh 2vw 2vh 2vw",
-      transform: {held} ? "translateY(10rem)" : "",
-    }} className="border border-slate-300">
-      {value === null ? "" : value}
-    </td>
+    <>
+      <td 
+        style={{
+          textAlign: "center",
+          padding: "2vh 2vw 2vh 2vw",
+          transform: {held} ? "translateY(1rem)" : "",
+        }}
+        className="border border-slate-300 fill-slate-100"
+        onClick={handleClick}
+      >
+        {value === null ? "" : value}
+      </td>
+    </>
   )
 }

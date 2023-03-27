@@ -24,6 +24,10 @@ class Game {
 		});
 	}
 
+	getPlayers() {
+		return this.players;
+	}
+
 	toggleHeld(die: number) {
 		this.dice[die].held = !this.dice[die].held;
 	}
